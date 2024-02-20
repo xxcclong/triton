@@ -55,6 +55,7 @@ class Autotuner(KernelInterface):
             )
         # augment meta-parameters with tunable ones
         current = dict(meta, **config.kwargs)
+        print(f"Running with {config}")
 
         def kernel_call():
             if config.pre_hook:
@@ -62,9 +63,12 @@ class Autotuner(KernelInterface):
             self.hook(args)
             self.fn.run(*args, num_warps=config.num_warps, num_stages=config.num_stages, **current)
         try:
-            return do_bench(kernel_call)
+            exec_time = do_bench(kernel_call)
+            print(f"Execution time: {exec_time} ms")
+            return exec_time
+            # return do_bench(kernel_call)
         except OutOfResources:
-            return float('inf')
+            return (float('inf'), float('inf'), float('inf'))
 
     def run(self, *args, **kwargs):
         self.nargs = dict(zip(self.arg_names, args))
